@@ -1,0 +1,88 @@
+---
+title: "Player Transfers"
+author: "Rishabh Kumar"
+date: "2022"
+output:
+  html_document:
+    theme:
+      bootswatch: cyborg
+  pdf_document: default
+---
+
+**This is a description of the data: **
+The dataset deals with soccer players. This dataset deals with transfers for these soccer players. In general, these international leagues have a lot of transfers and generally these transfers are associated with a lot of fees. Therefore it is very essential to price these players correctly. There is a lot of back and forth in these transfers and these are a success or failure based on the initial evaluation of the player. The scope of this project would be to build a prediction model which can assess the transfer value of a player.
+The dataset here consists of a lot of valuable information essential for evaluating the cost of a player. There are a total of 43 attributes in this dataset.
+
+**Some of the attributes in this dataset are: **
+1. Market Value
+2. Price of transfer (Continuous Integer)
+3. Acceleration (Continuous Integer)
+4. Age (Continuous Integer)
+5. Aggresion (Continuous Integer)
+6. Agility (Continuous Integer)
+7. Att. Position (Continuous Integer)
+8. Name (Index Variable)
+9. Ball Control (Continuous Integer)
+10. Birth Date (Continuous Integer)
+11. Birth Place (Nominal Categorical)
+12. Posistion (Nominal Categorical)
+13. Version (Ordinal Categorical)
+14. Dribbling (Continuous Integer)
+15. Finishing (Continuous Integer)
+16. Strength (Continuous Integer)
+17. Speed (Continuous Integer)
+
+**Original Format: **
+The original format of this dataset was a .txt file. It had to be converted into a .csv file so that it can be viewed in the correct format as well as ingested by R and can be used to build a predictive model.
+
+```{r, echo = TRUE}
+# This chunk of the document is for loading the dataset. 
+# I will be using the read_table function to read data into a dataframe
+# as.data.frame converts the table into a dataframe
+fifadata=as.data.frame(read.table("./baseNormalizada.txt",sep="\t", header=TRUE))
+```
+
+```{r, echo = TRUE}
+# Cleaning dataset. Removing some columns as well as changing date format columns
+library(janitor)
+# Formatting date column
+fifadata$Birth.Date <- as.Date(as.character(fifadata$Birth.Date),format = "%d/%m/%y")
+
+# Removing constant columns since no added value in machine learning algorithms
+fifadata=remove_constant(fifadata)
+
+# Dropping a few columns
+fifadata <- subset(fifadata, select = -c(GK.Diving, GK.Handling,GK.Kicking,GK.Positioning))
+```
+
+
+
+This dataframe has `r nrow(fifadata)` and `r nrow(fifadata)`. The names of the columns and a brief description of each are in the table below:
+
+| ColumnName | Description |
+| :---------- | :---------- |
+| Price | Shows the price of a player |
+| Market Value | Shows the market value of a player according to FIFA |
+| Acceleration | 0-100 value with direct correlation to price |
+| Age | Shows age. 22-29 is when the price is highest for a player |
+| Aggression | 0-100 value showing aggression |
+| Agility | 0-100 value showing agility |
+| Balance | 0-100 value showing balance |
+| Personal trait columns | More columns like Balance, Ball control, Speed, Crossing, Finishing, Heading, Height, Long Pass, Short Pass, Tackle, Vision etc. |
+| Position | Shows where the player is playing as a soccer player |
+| Preferred Foot | Whether the player is left footed or right footed |
+| Name | Indicates who the player is and acts like an index |
+| Game Edition | Which FIFA edition gives the price and personal traits |
+| Birth Place | Where the player was born is essential for his/her price |
+
+```{r, echo=TRUE}
+# Summarizing data
+subfifa=fifadata[,c("Price","Age","Weight")]
+
+NAcounts=c(sum(is.na(subfifa$Price)),sum(is.na(subfifa$Age)),sum(is.na(subfifa$Weight)))
+smry=do.call(cbind, lapply(subfifa, summary))
+smry = rbind(smry,NAcounts)
+smry=smry[c("Mean","Max.","Min.","NAcounts"),]
+knitr::kable(smry, format="html")
+```
+
